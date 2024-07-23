@@ -2,11 +2,14 @@
 import os
 
 from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import get_package_share_path
 
 # libraries to define the Launch file and Function
 from launch import LaunchDescription
+from launch.substitutions import LaunchConfiguration
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import DeclareLaunchArgument
 
 from launch_ros.actions import Node
 
@@ -17,6 +20,7 @@ def generate_launch_description():
     # !!! MAKE SURE YOU SET THE PACKAGE NAME CORRECTLY !!!
 
     package_name='f112th_sim_2024_alpha' #<--- CHANGE ME
+    rviz_file = 'rviz_model.rviz'
 
     rsp = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
@@ -33,12 +37,33 @@ def generate_launch_description():
     # Run the spawner node from the gazebo_ros package. The entity name doesn't really matter if you only have a single robot.
     spawn_entity = Node(package='gazebo_ros', executable='spawn_entity.py',
                         arguments=['-topic', 'robot_description',
-                                   '-entity', 'my_bot'],
+                                   '-entity', 'Alphajor'],
                         output='screen')
+    
+    joy = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([os.path.join(
+                    get_package_share_directory(package_name),'launch','joystick.launch.py')]),
+             )
+    
+    
+    pkg_path = os.path.join(get_package_share_path(package_name))
+    default_rviz_config_path = os.path.join(pkg_path + '/description/' + rviz_file)
+    rviz_arg = DeclareLaunchArgument(name='rvizmodel', default_value=str(default_rviz_config_path), description='Absolute path to rviz model file')
+
+    rviz_node = Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        output='screen',
+        arguments=['-d', LaunchConfiguration('rvizmodel')],
+    )
 
     # Launch them all!
     return LaunchDescription([
         rsp,
         gazebo,
         spawn_entity,
+        joy,
+        rviz_arg,
+        rviz_node,
     ])
