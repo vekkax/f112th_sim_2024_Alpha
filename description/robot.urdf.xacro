@@ -4,6 +4,8 @@
     <!-- Example link -->
     <xacro:include filename="robot_core.xacro"/>
     <xacro:include filename="properties.urdf.xacro"/>
+    <xacro:include filename="gazebo_control.xacro"/>
+    
         <!-- Example link -->
     
 
