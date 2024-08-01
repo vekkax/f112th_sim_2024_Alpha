@@ -40,11 +40,21 @@ def generate_launch_description():
                                    '-entity', 'Alphajor'],
                         output='screen')
     
-    joy = IncludeLaunchDescription(
-                PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory(package_name),'launch','joystick.launch.py')]),
-             )
     
+    joystick = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([os.path.join(
+                    get_package_share_directory(package_name),'launch','joystick.launch.py'
+                )]), launch_arguments={'use_sim_time': 'true'}.items()
+    )
+
+
+    twist_mux_params = os.path.join(get_package_share_directory(package_name),'config','twist_mux.yaml')
+    
+    twist_mux_node = Node(package='twist_mux', 
+                    executable='twist_mux',
+                    parameters=[twist_mux_params,{'use_sim_time': True}],
+                    remappings=[('/cmd_vel_out','cmd_vel')]
+    )
     
     pkg_path = os.path.join(get_package_share_path(package_name))
     default_rviz_config_path = os.path.join(pkg_path + '/description/' + rviz_file)
@@ -63,7 +73,8 @@ def generate_launch_description():
         rsp,
         gazebo,
         spawn_entity,
-        joy,
+        joystick,
+        twist_mux_node,
         rviz_arg,
         rviz_node,
     ])
